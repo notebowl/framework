@@ -610,7 +610,7 @@ class Blueprint {
 	 */
 	public function timestamp($column, $length = null)
 	{
-		return $this->addColumn('timestamp', $column, ($length ? compact('length'):null));
+		return $this->addColumn('timestamp', $column, ($length ? compact('length'):[]));
 	}
 
 	/**

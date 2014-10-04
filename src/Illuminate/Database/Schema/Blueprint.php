@@ -610,8 +610,6 @@ class Blueprint {
 	 */
 	public function timestamp($column, $length = null)
 	{
-		\Log::info("Length: $length");
-
 		return $this->addColumn('timestamp', $column, ($length ? compact('length'):[]));
 	}
 
@@ -745,6 +743,8 @@ class Blueprint {
 	 */
 	protected function addColumn($type, $name, array $parameters = array())
 	{
+		\Log::info($parameters);
+
 		$attributes = array_merge(compact('type', 'name'), $parameters);
 
 		$this->columns[] = $column = new Fluent($attributes);

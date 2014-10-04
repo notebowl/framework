@@ -482,9 +482,11 @@ class MySqlGrammar extends Grammar {
 	 */
 	protected function typeTimestamp(Fluent $column)
 	{
-		if ( ! $column->nullable) return 'timestamp default 0';
+		$percision = "";
+		if ( ! $column->length) $percision = "({$column->length})";
+		if ( ! $column->nullable) return "timestamp{$percision} default 0";
 
-		return 'timestamp';
+		return "timestamp{$percision}";
 	}
 
 	/**

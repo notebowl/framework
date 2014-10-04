@@ -483,10 +483,7 @@ class MySqlGrammar extends Grammar {
 	protected function typeTimestamp(Fluent $column)
 	{
 		$percision = "";
-		if ( ! $column->length) $percision = "({$column->length})";
-
-		\Log::info("Length: $percision");
-
+		if ($column->length) $percision = "({$column->length})";
 		if ( ! $column->nullable) return "timestamp{$percision} default 0";
 
 		return "timestamp{$percision}";

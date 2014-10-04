@@ -743,8 +743,6 @@ class Blueprint {
 	 */
 	protected function addColumn($type, $name, array $parameters = array())
 	{
-		\Log::info($parameters);
-
 		$attributes = array_merge(compact('type', 'name'), $parameters);
 
 		$this->columns[] = $column = new Fluent($attributes);

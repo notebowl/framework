@@ -610,6 +610,8 @@ class Blueprint {
 	 */
 	public function timestamp($column, $length = null)
 	{
+		\Log::info("Length: $length");
+
 		return $this->addColumn('timestamp', $column, ($length ? compact('length'):[]));
 	}
 

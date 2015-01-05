@@ -644,9 +644,11 @@ class Connection implements ConnectionInterface {
 	 * @return \Doctrine\DBAL\Schema\AbstractSchemaManager
 	 */
 	public function getDoctrineSchemaManager()
-	{
-		return $this->getDoctrineDriver()->getSchemaManager($this->getDoctrineConnection());
-	}
+        {
+            $schema = $this->getDoctrineDriver()->getSchemaManager($this->getDoctrineConnection());
+            $schema->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+            return $schema;
+        }
 
 	/**
 	 * Get the Doctrine DBAL database connection instance.

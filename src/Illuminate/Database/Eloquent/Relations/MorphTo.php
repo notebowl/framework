@@ -27,6 +27,13 @@ class MorphTo extends BelongsTo {
 	 * @var array
 	 */
 	protected $dictionary = array();
+	
+	/*
+	 * Indicates if soft-deleted model instances should be fetched.
+	 *
+	 * @var bool
+	 */
+	protected $withTrashed = false;
 
 	/**
 	 * Create a new belongs to relationship instance.

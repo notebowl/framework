@@ -282,7 +282,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 
 			$this->fireModelEvent('booted', false);
 
-			//static::addGlobalScope(new SoftDeletingScope);
+			static::addGlobalScope(new SoftDeletingScope);
 		}
 	}
 

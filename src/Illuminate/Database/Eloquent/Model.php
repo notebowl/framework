@@ -1249,17 +1249,6 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
-	 * Register a restored model event with the dispatcher.
-	 *
-	 * @param  \Closure|string  $callback
-	 * @return void
-	 */
-	public static function restored($callback)
-	{
-		static::registerModelEvent('restored', $callback);
-	}
-
-	/**
 	 * Remove all of the event listeners for the model.
 	 *
 	 * @return void

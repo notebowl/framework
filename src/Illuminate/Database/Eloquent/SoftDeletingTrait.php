@@ -3,13 +3,6 @@
 trait SoftDeletingTrait {
 
 	/**
-	 * Indicates if the model is currently force deleting.
-	 *
-	 * @var bool
-	 */
-	protected $forceDeleting = false;
-
-	/**
 	 * Boot the soft deleting trait for a model.
 	 *
 	 * @return void
@@ -26,8 +19,6 @@ trait SoftDeletingTrait {
 	 */
 	public function forceDelete()
 	{
-		$this->forceDeleting = true;
-
 		$softDelete = $this->softDelete;
 		// We will temporarily disable false delete to allow us to perform the real
 		// delete operation against the model. We will then restore the deleting
@@ -35,8 +26,6 @@ trait SoftDeletingTrait {
 		$this->softDelete = false;
 		$this->delete();
 		$this->softDelete = $softDelete;
-
-		$this->forceDeleting = false;
 	}
 
 	/**
@@ -46,26 +35,16 @@ trait SoftDeletingTrait {
 	 */
 	protected function performDeleteOnModel()
 	{
-		if ($this->forceDeleting)
-		{
-			return $this->withTrashed()->where($this->getKeyName(), $this->getKey())->forceDelete();
-		}
-
-		return $this->runSoftDelete();
-	}
-
-	/**
-	 * Perform the actual delete query on this model instance.
-	 *
-	 * @return void
-	 */
-	protected function runSoftDelete()
-	{
 		$query = $this->newQuery()->where($this->getKeyName(), $this->getKey());
-
-		$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
-
-		$query->update(array($this->getDeletedAtColumn() => $this->fromDateTime($time)));
+		if ($this->softDelete)
+		{
+			$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
+			$query->update(array($this->getDeletedAtColumn() => $this->fromDateTime($time)));
+		}
+		else
+		{
+			$query->forceDelete();
+		}
 	}
 
 	/**

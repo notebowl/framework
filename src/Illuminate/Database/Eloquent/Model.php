@@ -1157,16 +1157,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 */
 	protected function performDeleteOnModel()
 	{
-		$query = $this->newQuery()->where($this->getKeyName(), $this->getKey());
-		if ($this->softDelete)
-		{
-			$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
-			$query->update(array($this->getDeletedAtColumn() => $this->fromDateTime($time)));
-		}
-		else
-		{
-			$query->delete();
-		}
+		$this->newQuery()->where($this->getKeyName(), $this->getKey())->delete();
 	}
 
 	/**

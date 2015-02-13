@@ -1854,40 +1854,6 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
-	 * Determine if the model instance has been soft-deleted.
-	 *
-	 * @return bool
-	 */
-	public function trashed()
-	{
-		return $this->softDelete && ! is_null($this->{$this->getDeletedAtColumn()});
-	}
-
-	/**
-	 * Get a new query builder that includes soft deletes.
-	 *
-	 * @return \Illuminate\Database\Eloquent\Builder|static
-	 */
-	public static function withTrashed()
-	{
-		return (new static)->newQueryWithoutScope(new SoftDeletingScope);
-	}
-
-	/**
-	 * Get a new query builder that only includes soft deletes.
-	 *
-	 * @return \Illuminate\Database\Eloquent\Builder|static
-	 */
-	public static function onlyTrashed()
-	{
-		$instance = new static;
-
-		$column = $instance->getQualifiedDeletedAtColumn();
-
-		return $instance->newQueryWithoutScope(new SoftDeletingScope)->whereNotNull($column);
-	}
-
-	/**
 	 * Get a new query builder instance for the connection.
 	 *
 	 * @return \Illuminate\Database\Query\Builder

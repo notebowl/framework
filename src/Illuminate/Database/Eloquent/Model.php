@@ -1749,26 +1749,6 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
-	 * Get the name of the "deleted at" column.
-	 *
-	 * @return string
-	 */
-	public function getDeletedAtColumn()
-	{
-		return defined('static::DELETED_AT') ? static::DELETED_AT : 'deleted_at';
-	}
-
-	/**
-	 * Get the fully qualified "deleted at" column.
-	 *
-	 * @return string
-	 */
-	public function getQualifiedDeletedAtColumn()
-	{
-		return $this->getTable().'.'.$this->getDeletedAtColumn();
-	}
-
-	/**
 	 * Get a fresh timestamp for the model.
 	 *
 	 * @return \Carbon\Carbon

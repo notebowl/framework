@@ -2727,7 +2727,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 */
 	public function getDates()
 	{
-		$defaults = array(static::CREATED_AT, static::UPDATED_AT);
+		$defaults = array(static::CREATED_AT, static::UPDATED_AT, static::DELETED_AT);
 
 		return array_merge($this->dates, $defaults);
 	}

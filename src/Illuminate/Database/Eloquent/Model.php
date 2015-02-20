@@ -1985,6 +1985,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	protected function newBaseQueryBuilder()
 	{
 		$conn = $this->getConnection();
+		$conn->getPdo()->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 
 		$grammar = $conn->getQueryGrammar();
 

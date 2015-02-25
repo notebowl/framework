@@ -20,7 +20,7 @@ class Builder {
 	 *
 	 * @var \Illuminate\Database\Query\Grammars\Grammar
 	 */
-	protected $grammar;
+	public $grammar;
 
 	/**
 	 * The database query post processor instance.

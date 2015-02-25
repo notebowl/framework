@@ -20,7 +20,7 @@ class Builder {
 	 *
 	 * @var \Illuminate\Database\Query\Grammars\Grammar
 	 */
-	public $grammar;
+	protected $grammar;
 
 	/**
 	 * The database query post processor instance.
@@ -34,7 +34,7 @@ class Builder {
 	 *
 	 * @var array
 	 */
-	protected $bindings = array();
+	public $bindings = array();
 
 	/**
 	 * An aggregate function and column to be run.

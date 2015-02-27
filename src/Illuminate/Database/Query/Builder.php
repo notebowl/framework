@@ -376,9 +376,9 @@ class Builder {
 	 
 	public function resetQuery()
 	{
-		$query->getQuery()->wheres = [];
+		$this->wheres = [];
 		
-		foreach($query->getQuery()->bindings as &$subBinding)
+		foreach($this->bindings as &$subBinding)
 			$subBinding = [];
 	}
 

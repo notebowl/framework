@@ -369,6 +369,18 @@ class Builder {
 	{
 		return $this->joinWhere($table, $one, $operator, $two, 'left');
 	}
+	
+	/**
+	 * Reset query options
+	 */
+	 
+	public function resetQuery()
+	{
+		$query->getQuery()->wheres = [];
+		
+		foreach($query->getQuery()->bindings as &$subBinding)
+			$subBinding = [];
+	}
 
 	/**
 	 * Add a right join to the query.

@@ -75,8 +75,14 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 
 	public function testArrayExcept()
 	{
-		$array = array('name' => 'taylor', 'age' => 26);
-		$this->assertEquals(array('age' => 26), array_except($array, array('name')));
+		$array = ['name' => 'taylor', 'age' => 26];
+		$this->assertEquals(['age' => 26], array_except($array, ['name']));
+		$this->assertEquals(['age' => 26], array_except($array, 'name'));
+
+		$array = ['name' => 'taylor', 'framework' => ['language' => 'PHP', 'name' => 'Laravel']];
+		$this->assertEquals(['name' => 'taylor'], array_except($array, 'framework'));
+		$this->assertEquals(['name' => 'taylor', 'framework' => ['name' => 'Laravel']], array_except($array, 'framework.language'));
+		$this->assertEquals(['framework' => ['language' => 'PHP']], array_except($array, ['name', 'framework.name']));
 	}
 
 
@@ -85,6 +91,13 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 		$array = array('name' => 'taylor', 'age' => 26);
 		$this->assertEquals(array('name' => 'taylor'), array_only($array, array('name')));
 		$this->assertSame(array(), array_only($array, array('nonExistingKey')));
+	}
+
+
+	public function testArrayCollapse()
+	{
+		$array = [[1], [2], [3], ['foo', 'bar'], collect(['baz', 'boom'])];
+		$this->assertEquals([1, 2, 3, 'foo', 'bar', 'baz', 'boom'], array_collapse($array));
 	}
 
 
@@ -170,6 +183,14 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testStrRandom()
+	{
+		$result = str_random(20);
+		$this->assertTrue(is_string($result));
+		$this->assertEquals(20, strlen($result));
+	}
+
+
 	public function testStartsWith()
 	{
 		$this->assertTrue(starts_with('jason', 'jas'));
@@ -194,6 +215,15 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue(str_contains('taylor', array('ylo')));
 		$this->assertFalse(str_contains('taylor', 'xxx'));
 		$this->assertFalse(str_contains('taylor', array('xxx')));
+		$this->assertTrue(str_contains('taylor', array('xxx', 'taylor')));
+	}
+
+
+	public function testStrFinish()
+	{
+		$this->assertEquals('test/string/', str_finish('test/string', '/'));
+		$this->assertEquals('test/string/', str_finish('test/string/', '/'));
+		$this->assertEquals('test/string/', str_finish('test/string//', '/'));
 	}
 
 
@@ -201,6 +231,15 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->assertEquals('foo_bar', snake_case('fooBar'));
 		$this->assertEquals('foo_bar', snake_case('fooBar')); // test cache
+	}
+
+
+	public function testStrLimit()
+	{
+		$string = 'The PHP framework for web artisans.';
+		$this->assertEquals('The PHP...', str_limit($string, 7));
+		$this->assertEquals('The PHP', str_limit($string, 7, ''));
+		$this->assertEquals('The PHP framework for web artisans.', str_limit($string, 100));
 	}
 
 
@@ -221,6 +260,13 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('FooBar', studly_case('foo_bar')); // test cache
 		$this->assertEquals('FooBarBaz', studly_case('foo-barBaz'));
 		$this->assertEquals('FooBarBaz', studly_case('foo-bar_baz'));
+	}
+
+
+	public function testClassBasename()
+	{
+		$this->assertEquals('Baz', class_basename('Foo\Bar\Baz'));
+		$this->assertEquals('Baz', class_basename('Baz'));
 	}
 
 
@@ -245,12 +291,19 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 	{
 		$object = (object) array('users' => array('name' => array('Taylor', 'Otwell')));
 		$array = array((object) array('users' => array((object) array('name' => 'Taylor'))));
+		$arrayAccess = new SupportTestArrayAccess(['price' => 56, 'user' => new SupportTestArrayAccess(['name' => 'John'])]);
 
 		$this->assertEquals('Taylor', data_get($object, 'users.name.0'));
 		$this->assertEquals('Taylor', data_get($array, '0.users.0.name'));
 		$this->assertNull(data_get($array, '0.users.3'));
 		$this->assertEquals('Not found', data_get($array, '0.users.3', 'Not found'));
 		$this->assertEquals('Not found', data_get($array, '0.users.3', function (){ return 'Not found'; }));
+		$this->assertEquals(56, data_get($arrayAccess, 'price'));
+		$this->assertEquals('John', data_get($arrayAccess, 'user.name'));
+		$this->assertEquals('void', data_get($arrayAccess, 'foo', 'void'));
+		$this->assertEquals('void', data_get($arrayAccess, 'user.foo', 'void'));
+		$this->assertNull(data_get($arrayAccess, 'foo'));
+		$this->assertNull(data_get($arrayAccess, 'user.foo'));
 	}
 
 
@@ -267,6 +320,33 @@ class SupportHelpersTest extends PHPUnit_Framework_TestCase {
 			array('name' => 'baz'),
 			array('name' => 'foo')),
 		array_values(array_sort($array, function($v) { return $v['name']; })));
+	}
+
+
+	public function testArrayWhere()
+	{
+		$array = ['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5, 'f' => 6, 'g' => 7, 'h' => 8];
+		$this->assertEquals(['b' => 2, 'd' => 4, 'f' => 6, 'h' => 8], array_where(
+			$array,
+			function($key, $value)
+			{
+				return $value % 2 === 0;
+			}
+		));
+	}
+
+
+	public function testHead()
+	{
+		$array = ['a', 'b', 'c'];
+		$this->assertEquals('a', head($array));
+	}
+
+
+	public function testLast()
+	{
+		$array = ['a', 'b', 'c'];
+		$this->assertEquals('c', last($array));
 	}
 
 
@@ -307,3 +387,19 @@ class SupportTestClassOne {
 }
 
 class SupportTestClassTwo extends SupportTestClassOne {}
+
+class SupportTestArrayAccess implements ArrayAccess {
+
+	protected $attributes = [];
+
+	public function __construct ($attributes = []){ $this->attributes = $attributes; }
+
+	public function offsetExists ($offset){ return isset($this->attributes[$offset]); }
+
+	public function offsetGet ($offset){ return $this->attributes[$offset]; }
+
+	public function offsetSet ($offset, $value){ $this->attributes[$offset] = $value; }
+
+	public function offsetUnset ($offset){ unset($this->attributes[$offset]); }
+
+}

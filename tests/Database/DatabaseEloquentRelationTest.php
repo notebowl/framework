@@ -14,10 +14,10 @@ class DatabaseEloquentRelationTest extends PHPUnit_Framework_TestCase {
 	public function testSetRelationFail()
 	{
 		$parent = new EloquentRelationResetModelStub;
-		$relation =new EloquentRelationResetModelStub;
-		$parent->setRelation('test',$relation);
-		$parent->setRelation('foo','bar');
-		$this->assertTrue(!array_key_exists('foo', $parent->toArray()));
+		$relation = new EloquentRelationResetModelStub;
+		$parent->setRelation('test', $relation);
+		$parent->setRelation('foo', 'bar');
+		$this->assertArrayNotHasKey('foo', $parent->toArray());
 	}
 
 
@@ -27,6 +27,7 @@ class DatabaseEloquentRelationTest extends PHPUnit_Framework_TestCase {
 		$parent = m::mock('Illuminate\Database\Eloquent\Model');
 		$parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
 		$builder->shouldReceive('getModel')->andReturn($related = m::mock('StdClass'));
+		$builder->shouldReceive('whereNotNull');
 		$builder->shouldReceive('where');
 		$relation = new HasOne($builder, $parent, 'foreign_key', 'id');
 		$related->shouldReceive('getTable')->andReturn('table');

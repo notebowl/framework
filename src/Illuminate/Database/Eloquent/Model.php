@@ -119,6 +119,13 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	protected $fillable = array();
 
 	/**
+	 * Indicates if the model is currently force deleting.
+	 *
+	 * @var bool
+	 */
+	protected $forceDeleting = false;
+
+	/**
 	 * The attributes that aren't mass assignable.
 	 *
 	 * @var array
@@ -173,6 +180,13 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	 * @var bool
 	 */
 	public $exists = false;
+
+	/**
+	 * Indicates if the model should soft delete.
+	 *
+	 * @var bool
+	 */
+	protected $softDelete = false;
 
 	/**
 	 * Indicates whether attributes are snake cased on arrays.
@@ -245,6 +259,13 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	const UPDATED_AT = 'updated_at';
 
 	/**
+	 * The name of the "deleted at" column.
+	 *
+	 * @var string
+	 */
+	const DELETED_AT = 'deleted_at';
+
+	/**
 	 * Create a new Eloquent model instance.
 	 *
 	 * @param  array  $attributes
@@ -277,6 +298,9 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 			static::boot();
 
 			$this->fireModelEvent('booted', false);
+
+			if($this->softDelete)
+				static::addGlobalScope(new SoftDeletingScope);
 		}
 	}
 
@@ -1150,7 +1174,11 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	 */
 	public function forceDelete()
 	{
-		return $this->delete();
+		$this->forceDeleting = true;
+
+		$this->delete();
+
+		$this->forceDeleting = false;
 	}
 
 	/**
@@ -1160,7 +1188,55 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	 */
 	protected function performDeleteOnModel()
 	{
-		$this->setKeysForSaveQuery($this->newQuery())->delete();
+		if ($this->forceDeleting)
+		{
+			return $this->withTrashed()->where($this->getKeyName(), $this->getKey())->forceDelete();
+		}
+
+		return $this->runSoftDelete();
+	}
+
+	/**
+	 * Perform the actual delete query on this model instance.
+	 *
+	 * @return void
+	 */
+	protected function runSoftDelete()
+	{
+		$query = $this->newQuery()->where($this->getKeyName(), $this->getKey());
+
+		$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
+
+		$query->update(array($this->getDeletedAtColumn() => $this->fromDateTime($time)));
+	}
+
+	/**
+	 * Restore a soft-deleted model instance.
+	 *
+	 * @return bool|null
+	 */
+	public function restore()
+	{
+		// If the restoring event does not return false, we will proceed with this
+		// restore operation. Otherwise, we bail out so the developer will stop
+		// the restore totally. We will clear the deleted timestamp and save.
+		if ($this->fireModelEvent('restoring') === false)
+		{
+			return false;
+		}
+
+		$this->{$this->getDeletedAtColumn()} = null;
+
+		// Once we have saved the model, we will fire the "restored" event so this
+		// developer will do anything they need to after a restore operation is
+		// totally finished. Then we will return the result of the save call.
+		$this->exists = true;
+
+		$result = $this->save();
+
+		$this->fireModelEvent('restored', false);
+
+		return $result;
 	}
 
 	/**
@@ -1257,6 +1333,28 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	public static function deleted($callback, $priority = 0)
 	{
 		static::registerModelEvent('deleted', $callback, $priority);
+	}
+
+	/**
+	 * Register a restoring model event with the dispatcher.
+	 *
+	 * @param  \Closure|string  $callback
+	 * @return void
+	 */
+	public static function restoring($callback)
+	{
+		static::registerModelEvent('restoring', $callback);
+	}
+
+	/**
+	 * Register a restored model event with the dispatcher.
+	 *
+	 * @param  \Closure|string  $callback
+	 * @return void
+	 */
+	public static function restored($callback)
+	{
+		static::registerModelEvent('restored', $callback);
 	}
 
 	/**
@@ -1773,6 +1871,26 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	}
 
 	/**
+	 * Get the name of the "deleted at" column.
+	 *
+	 * @return string
+	 */
+	public function getDeletedAtColumn()
+	{
+		return defined('static::DELETED_AT') ? static::DELETED_AT : 'deleted_at';
+	}
+
+	/**
+	 * Get the fully qualified "deleted at" column.
+	 *
+	 * @return string
+	 */
+	public function getQualifiedDeletedAtColumn()
+	{
+		return $this->getTable().'.'.$this->getDeletedAtColumn();
+	}
+
+	/**
 	 * Get a fresh timestamp for the model.
 	 *
 	 * @return \Carbon\Carbon
@@ -1878,6 +1996,40 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	}
 
 	/**
+	 * Determine if the model instance has been soft-deleted.
+	 *
+	 * @return bool
+	 */
+	public function trashed()
+	{
+		return ! is_null($this->{$this->getDeletedAtColumn()});
+	}
+
+	/**
+	 * Get a new query builder that includes soft deletes.
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder|static
+	 */
+	public static function withTrashed()
+	{
+		return (new static)->newQueryWithoutScope(new SoftDeletingScope);
+	}
+
+	/**
+	 * Get a new query builder that only includes soft deletes.
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder|static
+	 */
+	public static function onlyTrashed()
+	{
+		$instance = new static;
+
+		$column = $instance->getQualifiedDeletedAtColumn();
+
+		return $instance->newQueryWithoutScope(new SoftDeletingScope)->whereNotNull($column);
+	}
+
+	/**
 	 * Get a new query builder instance for the connection.
 	 *
 	 * @return \Illuminate\Database\Query\Builder
@@ -1885,6 +2037,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	protected function newBaseQueryBuilder()
 	{
 		$conn = $this->getConnection();
+		$conn->getPdo()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, true);
 
 		$grammar = $conn->getQueryGrammar();
 
@@ -2813,7 +2966,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	 */
 	public function getDates()
 	{
-		$defaults = array(static::CREATED_AT, static::UPDATED_AT);
+		$defaults = array(static::CREATED_AT, static::UPDATED_AT, static::DELETED_AT);
 
 		return array_merge($this->dates, $defaults);
 	}

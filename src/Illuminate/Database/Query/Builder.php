@@ -363,6 +363,18 @@ class Builder {
 	}
 
 	/**
+	 * Reset query options
+	 */
+
+	public function resetQuery()
+	{
+		$this->wheres = [];
+
+		foreach($this->bindings as &$subBinding)
+			$subBinding = [];
+	}
+
+	/**
 	 * Add a left join to the query.
 	 *
 	 * @param  string  $table

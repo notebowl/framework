@@ -879,7 +879,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 		// we will pass in the appropriate values so that it behaves as expected.
 		else
 		{
-			$instance = new $class;
+			$instance = new "App\Models\\$class";
 
 			return new MorphTo(
 				$instance->newQuery(), $this, $id, $instance->getKeyName(), $type, $name

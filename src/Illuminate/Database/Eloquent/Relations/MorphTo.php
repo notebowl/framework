@@ -217,6 +217,7 @@ class MorphTo extends BelongsTo {
 	 */
 	public function createModelByType($type)
 	{
+		$type = "App\Models\\$type";
 		return new $type;
 	}
 

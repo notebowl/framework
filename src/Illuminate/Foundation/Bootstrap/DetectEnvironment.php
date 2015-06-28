@@ -25,7 +25,7 @@ class DetectEnvironment {
 
 		$app->detectEnvironment(function()
 		{
-			return env('APP_ENV', 'local');
+			return env('APP_ENV', 'development');
 		});
 	}
 

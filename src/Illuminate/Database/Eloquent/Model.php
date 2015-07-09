@@ -1189,12 +1189,18 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	 */
 	protected function performDeleteOnModel()
 	{
-		if ($this->forceDeleting)
+		if($this->softDelete)
 		{
-			return $this->withTrashed()->where($this->getKeyName(), $this->getKey())->forceDelete();
+			if ($this->forceDeleting) {
+            			return $this->withTrashed()->where($this->getKeyName(), $this->getKey())->forceDelete();
+        		}
+        		
+        		return $this->runSoftDelete();
 		}
-
-		return $this->runSoftDelete();
+		else 
+		{
+			$this->setKeysForSaveQuery($this->newQuery())->delete();
+		}
 	}
 
 	/**

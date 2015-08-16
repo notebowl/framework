@@ -3082,6 +3082,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 			$this->getKeyName(),
 			$this->getCreatedAtColumn(),
 			$this->getUpdatedAtColumn(),
+			$this->getPrimaryRestColumn(),
 		];
 
 		$attributes = array_except($this->attributes, $except);

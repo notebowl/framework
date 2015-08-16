@@ -3078,12 +3078,12 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
 	 */
 	public function replicate(array $except = null)
 	{
-		$except = $except ?: [
+		$except = $except ?: array_merge([
 			$this->getKeyName(),
 			$this->getCreatedAtColumn(),
 			$this->getUpdatedAtColumn(),
 			$this->getPrimaryRestColumn(),
-		];
+		], $this->getReplicateColumns());
 
 		$attributes = array_except($this->attributes, $except);
 

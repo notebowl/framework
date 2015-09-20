@@ -526,11 +526,13 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTimestamp(Fluent $column)
     {
+        $length = "";
+        if ($column->length) $length = "({$column->length})";
         if (! $column->nullable && $column->default === null) {
-            return 'timestamp default 0';
+            return "timestamp{$length} default 0";
         }
 
-        return 'timestamp';
+        return "timestamp{$length}";
     }
 
     /**

@@ -872,7 +872,8 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
         else {
             $class = $this->getActualClassNameForMorph($class);
 
-            $instance = new $class;
+            $instance_name = "App\Models\\$class";
+            $instance = new $instance_name;
 
             return new MorphTo(
                 $instance->newQuery(), $this, $id, $instance->getKeyName(), $type, $name
@@ -1906,6 +1907,8 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
     protected function newBaseQueryBuilder()
     {
         $conn = $this->getConnection();
+        
+        $conn->getPdo()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, true);
 
         $grammar = $conn->getQueryGrammar();
 
@@ -2873,7 +2876,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      */
     public function getDates()
     {
-        $defaults = [static::CREATED_AT, static::UPDATED_AT];
+        $defaults = [static::CREATED_AT, static::UPDATED_AT, static::DELETED_AT];
 
         return $this->timestamps ? array_merge($this->dates, $defaults) : $this->dates;
     }
@@ -2977,11 +2980,12 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      */
     public function replicate(array $except = null)
     {
-        $except = $except ?: [
+        $except = $except ?: array_merge([
             $this->getKeyName(),
             $this->getCreatedAtColumn(),
             $this->getUpdatedAtColumn(),
-        ];
+            $this->getPrimaryRestColumn(),
+        ], $this->getReplicateColumns());
 
         $attributes = array_except($this->attributes, $except);
 

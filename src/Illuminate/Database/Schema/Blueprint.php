@@ -739,9 +739,10 @@ class Blueprint
      * @param  string  $column
      * @return \Illuminate\Support\Fluent
      */
-    public function timestamp($column)
+    public function timestamp($column, $length = 6)
     {
-        return $this->addColumn('timestamp', $column);
+        if($length == 0) \App::abort(500, "0 is not a valid length for timestamp");
+        return $this->addColumn('timestamp', $column, ($length ? compact('length'):[]));
     }
 
     /**

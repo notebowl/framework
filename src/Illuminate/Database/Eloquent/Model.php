@@ -262,6 +262,13 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      * @var string
      */
     const UPDATED_AT = 'updated_at';
+    
+    /**
+     * The name of the "deleted at" column.
+     *
+     * @var string
+     */
+    const DELETED_AT = 'deleted_at';
 
     /**
      * Create a new Eloquent model instance.

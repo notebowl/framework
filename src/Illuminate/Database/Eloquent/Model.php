@@ -2459,7 +2459,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
         // to a DateTime / Carbon instance. This is so we will get some consistent
         // formatting while accessing attributes vs. arraying / JSONing a model.
         foreach ($this->getDates() as $key) {
-            if (! isset($attributes[$key]) || $attributes[$key] === null) {
+            if (! isset($attributes[$key]) || !$this->dateExists($attributes[$key])) {
                 continue;
             }
 

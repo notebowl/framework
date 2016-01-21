@@ -334,4 +334,10 @@ abstract class Relation
 
         return $result;
     }
+    
+    //This is a missing relationship from the laravel core. Added by @slaughter550 on 1/21/2016 due to reference copying across objects.
+    public function __clone()
+    {
+        $this->query = clone $this->query;
+    }
 }

@@ -20,17 +20,17 @@ class SupportCapsuleManagerTraitTest extends PHPUnit_Framework_TestCase
 
         $this->assertNull($this->setupContainer($app));
         $this->assertEquals($app, $this->getContainer());
-        $this->assertInstanceOf('\Illuminate\Support\Fluent', $app['config']);
+        $this->assertInstanceOf('Illuminate\Support\Fluent', $app['config']);
     }
 
     public function testSetupContainerForCapsuleWhenConfigIsBound()
     {
         $this->container = null;
         $app = new Container;
-        $app['config'] = m::mock('\Illuminate\Config\Repository');
+        $app['config'] = m::mock('Illuminate\Config\Repository');
 
         $this->assertNull($this->setupContainer($app));
         $this->assertEquals($app, $this->getContainer());
-        $this->assertInstanceOf('\Illuminate\Config\Repository', $app['config']);
+        $this->assertInstanceOf('Illuminate\Config\Repository', $app['config']);
     }
 }

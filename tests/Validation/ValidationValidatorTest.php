@@ -231,6 +231,37 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('require it please!', $v->messages()->first('name'));
     }
 
+    public function testSeveralSameInlineValidationMessagesAreRespected()
+    {
+        $trans = $this->getRealTranslator();
+
+        $data = [
+            'name' => '',
+            'foo' => 'bar',
+            'laravel' => 'framework',
+        ];
+
+        $rules = [
+            'name' => 'Required',
+            'foo' => 'Boolean',
+            'laravel' => 'Numeric',
+        ];
+
+        $messages = [
+            'name.required' => 'validation failed',
+            'foo.boolean' => 'validation failed',
+            'laravel.numeric' => 'another failure',
+        ];
+
+        $v = new Validator($trans, $data, $rules, $messages);
+        $this->assertFalse($v->passes());
+        $v->messages()->setFormat(':message');
+
+        $this->assertEquals('validation failed', $v->messages()->first('name'));
+        $this->assertEquals('validation failed', $v->messages()->first('foo'));
+        $this->assertEquals('another failure', $v->messages()->first('laravel'));
+    }
+
     public function testValidateRequired()
     {
         $trans = $this->getRealTranslator();
@@ -445,6 +476,36 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('The last field is required when first is dayle.', $v->messages()->first('last'));
     }
 
+    public function testRequiredUnless()
+    {
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['first' => 'sven'], ['last' => 'required_unless:first,taylor']);
+        $this->assertTrue($v->fails());
+
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['first' => 'taylor'], ['last' => 'required_unless:first,taylor']);
+        $this->assertTrue($v->passes());
+
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['first' => 'sven', 'last' => 'wittevrongel'], ['last' => 'required_unless:first,taylor']);
+        $this->assertTrue($v->passes());
+
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['first' => 'taylor'], ['last' => 'required_unless:first,taylor,sven']);
+        $this->assertTrue($v->passes());
+
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['first' => 'sven'], ['last' => 'required_unless:first,taylor,sven']);
+        $this->assertTrue($v->passes());
+
+        // error message when passed multiple values (required_unless:foo,bar,baz)
+        $trans = $this->getRealTranslator();
+        $trans->addResource('array', ['validation.required_unless' => 'The :attribute field is required unless :other is in :values.'], 'en', 'messages');
+        $v = new Validator($trans, ['first' => 'dayle', 'last' => ''], ['last' => 'RequiredUnless:first,taylor,sven']);
+        $this->assertFalse($v->passes());
+        $this->assertEquals('The last field is required unless first is in taylor, sven.', $v->messages()->first('last'));
+    }
+
     public function testValidateConfirmed()
     {
         $trans = $this->getRealTranslator();
@@ -596,6 +657,43 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($v->passes());
     }
 
+    public function testValidateBool()
+    {
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['foo' => 'no'], ['foo' => 'Bool']);
+        $this->assertFalse($v->passes());
+
+        $v = new Validator($trans, ['foo' => 'yes'], ['foo' => 'Bool']);
+        $this->assertFalse($v->passes());
+
+        $v = new Validator($trans, ['foo' => 'false'], ['foo' => 'Bool']);
+        $this->assertFalse($v->passes());
+
+        $v = new Validator($trans, ['foo' => 'true'], ['foo' => 'Bool']);
+        $this->assertFalse($v->passes());
+
+        $v = new Validator($trans, [], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => false], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => true], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => '1'], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => 1], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => '0'], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => 0], ['foo' => 'Bool']);
+        $this->assertTrue($v->passes());
+    }
+
     public function testValidateNumeric()
     {
         $trans = $this->getRealTranslator();
@@ -625,6 +723,22 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($v->passes());
 
         $v = new Validator($trans, ['foo' => '1'], ['foo' => 'Integer']);
+        $this->assertTrue($v->passes());
+    }
+
+    public function testValidateInt()
+    {
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['foo' => 'asdad'], ['foo' => 'Int']);
+        $this->assertFalse($v->passes());
+
+        $v = new Validator($trans, ['foo' => '1.23'], ['foo' => 'Int']);
+        $this->assertFalse($v->passes());
+
+        $v = new Validator($trans, ['foo' => '-1'], ['foo' => 'Int']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['foo' => '1'], ['foo' => 'Int']);
         $this->assertTrue($v->passes());
     }
 
@@ -984,6 +1098,9 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
 
         $v = new Validator($trans, ['x' => 'http://www.google.com'], ['x' => 'active_url']);
         $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => 'http://www.google.com/about'], ['x' => 'active_url']);
+        $this->assertTrue($v->passes());
     }
 
     public function testValidateImage()
@@ -1024,6 +1141,9 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($v->passes());
     }
 
+    /**
+     * @requires extension fileinfo
+     */
     public function testValidateMimetypes()
     {
         $trans = $this->getRealTranslator();
@@ -1127,10 +1247,10 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $v = new Validator($trans, ['x' => 'http://g232oogle.com'], ['x' => 'AlphaNum']);
         $this->assertFalse($v->passes());
 
-        $v = new Validator($trans, ['x' => '१२३'], ['x' => 'AlphaNum']);//numbers in Hindi
+        $v = new Validator($trans, ['x' => '१२३'], ['x' => 'AlphaNum']); // numbers in Hindi
         $this->assertTrue($v->passes());
 
-        $v = new Validator($trans, ['x' => '٧٨٩'], ['x' => 'AlphaNum']);//eastern arabic numerals
+        $v = new Validator($trans, ['x' => '٧٨٩'], ['x' => 'AlphaNum']); // eastern arabic numerals
         $this->assertTrue($v->passes());
 
         $v = new Validator($trans, ['x' => 'नमस्कार'], ['x' => 'AlphaNum']);
@@ -1149,7 +1269,7 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $v = new Validator($trans, ['x' => 'नमस्कार-_'], ['x' => 'AlphaDash']);
         $this->assertTrue($v->passes());
 
-        $v = new Validator($trans, ['x' => '٧٨٩'], ['x' => 'AlphaDash']);//eastern arabic numerals
+        $v = new Validator($trans, ['x' => '٧٨٩'], ['x' => 'AlphaDash']); // eastern arabic numerals
         $this->assertTrue($v->passes());
     }
 

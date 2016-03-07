@@ -76,7 +76,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('setAttribute')->never();
         $model->shouldReceive('save')->never();
 
-        $this->assertTrue($relation->findOrNew('foo') instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->findOrNew('foo'));
     }
 
     public function testFindOrNewMethodReturnsNewModelWithMorphKeysSet()
@@ -88,7 +88,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('setAttribute')->once()->with('morph_type', get_class($relation->getParent()));
         $model->shouldReceive('save')->never();
 
-        $this->assertTrue($relation->findOrNew('foo') instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->findOrNew('foo'));
     }
 
     public function testFirstOrNewMethodFindsFirstModel()
@@ -100,7 +100,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('setAttribute')->never();
         $model->shouldReceive('save')->never();
 
-        $this->assertTrue($relation->firstOrNew(['foo']) instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->firstOrNew(['foo']));
     }
 
     public function testFirstOrNewMethodReturnsNewModelWithMorphKeysSet()
@@ -113,7 +113,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('setAttribute')->once()->with('morph_type', get_class($relation->getParent()));
         $model->shouldReceive('save')->never();
 
-        $this->assertTrue($relation->firstOrNew(['foo']) instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->firstOrNew(['foo']));
     }
 
     public function testFirstOrCreateMethodFindsFirstModel()
@@ -125,7 +125,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('setAttribute')->never();
         $model->shouldReceive('save')->never();
 
-        $this->assertTrue($relation->firstOrCreate(['foo']) instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->firstOrCreate(['foo']));
     }
 
     public function testFirstOrCreateMethodCreatesNewMorphModel()
@@ -138,7 +138,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('setAttribute')->once()->with('morph_type', get_class($relation->getParent()));
         $model->shouldReceive('save')->once()->andReturn(true);
 
-        $this->assertTrue($relation->firstOrCreate(['foo']) instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->firstOrCreate(['foo']));
     }
 
     public function testUpdateOrCreateMethodFindsFirstModelAndUpdates()
@@ -151,7 +151,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('fill')->once()->with(['bar']);
         $model->shouldReceive('save')->once();
 
-        $this->assertTrue($relation->updateOrCreate(['foo'], ['bar']) instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->updateOrCreate(['foo'], ['bar']));
     }
 
     public function testUpdateOrCreateMethodCreatesNewMorphModel()
@@ -165,7 +165,7 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
         $model->shouldReceive('save')->once()->andReturn(true);
         $model->shouldReceive('fill')->once()->with(['bar']);
 
-        $this->assertTrue($relation->updateOrCreate(['foo'], ['bar']) instanceof Model);
+        $this->assertInstanceOf(Model::class, $relation->updateOrCreate(['foo'], ['bar']));
     }
 
     public function testCreateFunctionOnNamespacedMorph()
@@ -212,6 +212,8 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
 
     protected function getNamespacedRelation($alias)
     {
+        require_once __DIR__.'/stubs/EloquentModelNamespacedStub.php';
+
         Relation::morphMap([
             $alias => 'Foo\Bar\EloquentModelNamespacedStub',
         ]);
@@ -232,11 +234,4 @@ class DatabaseEloquentMorphTest extends PHPUnit_Framework_TestCase
 
 class EloquentMorphResetModelStub extends Illuminate\Database\Eloquent\Model
 {
-}
-
-class EloquentMorphQueryStub extends Illuminate\Database\Query\Builder
-{
-    public function __construct()
-    {
-    }
 }

@@ -49,8 +49,9 @@ abstract class Relation
     /**
      * Create a new relation instance.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $parent
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Model  $parent
+     * @return void
      */
     public function __construct(Builder $query, Model $parent)
     {
@@ -63,22 +64,24 @@ abstract class Relation
 
     /**
      * Set the base constraints on the relation query.
+     *
+     * @return void
      */
     abstract public function addConstraints();
 
     /**
      * Set the constraints for an eager load of the relation.
      *
-     * @param array $models
+     * @param  array  $models
+     * @return void
      */
     abstract public function addEagerConstraints(array $models);
 
     /**
      * Initialize the relation on a set of models.
      *
-     * @param array  $models
-     * @param string $relation
-     *
+     * @param  array   $models
+     * @param  string  $relation
      * @return array
      */
     abstract public function initRelation(array $models, $relation);
@@ -86,10 +89,9 @@ abstract class Relation
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param array                                    $models
-     * @param \Illuminate\Database\Eloquent\Collection $results
-     * @param string                                   $relation
-     *
+     * @param  array   $models
+     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param  string  $relation
      * @return array
      */
     abstract public function match(array $models, Collection $results, $relation);
@@ -113,6 +115,8 @@ abstract class Relation
 
     /**
      * Touch all of the related models for the relationship.
+     *
+     * @return void
      */
     public function touch()
     {
@@ -124,8 +128,7 @@ abstract class Relation
     /**
      * Run a raw update against the base query.
      *
-     * @param array $attributes
-     *
+     * @param  array  $attributes
      * @return int
      */
     public function rawUpdate(array $attributes = [])
@@ -136,9 +139,8 @@ abstract class Relation
     /**
      * Add the constraints for a relationship count query.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Builder $parent
-     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $parent
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getRelationCountQuery(Builder $query, Builder $parent)
@@ -153,8 +155,7 @@ abstract class Relation
     /**
      * Run a callback with constraints disabled on the relation.
      *
-     * @param \Closure $callback
-     *
+     * @param  \Closure  $callback
      * @return mixed
      */
     public static function noConstraints(Closure $callback)
@@ -178,9 +179,8 @@ abstract class Relation
     /**
      * Get all of the primary keys for an array of models.
      *
-     * @param array  $models
-     * @param string $key
-     *
+     * @param  array   $models
+     * @param  string  $key
      * @return array
      */
     protected function getKeys(array $models, $key = null)
@@ -274,8 +274,7 @@ abstract class Relation
     /**
      * Wrap the given value with the parent query's grammar.
      *
-     * @param string $value
-     *
+     * @param  string  $value
      * @return string
      */
     public function wrap($value)
@@ -286,9 +285,8 @@ abstract class Relation
     /**
      * Set or get the morph map for polymorphic relations.
      *
-     * @param array|null $map
-     * @param bool       $merge
-     *
+     * @param  array|null  $map
+     * @param  bool  $merge
      * @return array
      */
     public static function morphMap(array $map = null, $merge = true)
@@ -305,8 +303,7 @@ abstract class Relation
     /**
      * Builds a table-keyed array from model class names.
      *
-     * @param string[]|null $models
-     *
+     * @param  string[]|null  $models
      * @return array|null
      */
     protected static function buildMorphMapFromModels(array $models = null)
@@ -316,7 +313,7 @@ abstract class Relation
         }
 
         $tables = array_map(function ($model) {
-            return (new $model())->getTable();
+            return (new $model)->getTable();
         }, $models);
 
         return array_combine($tables, $models);
@@ -325,9 +322,8 @@ abstract class Relation
     /**
      * Handle dynamic method calls to the relationship.
      *
-     * @param string $method
-     * @param array  $parameters
-     *
+     * @param  string  $method
+     * @param  array   $parameters
      * @return mixed
      */
     public function __call($method, $parameters)
@@ -343,6 +339,8 @@ abstract class Relation
 
     /**
      * Force a clone of the underlying query builder when cloning.
+     *
+     * @return void
      */
     public function __clone()
     {

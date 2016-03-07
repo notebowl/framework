@@ -420,6 +420,34 @@ class DatabaseEloquentBuilderTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(['foo' => $builder], $builder->delete());
     }
 
+    public function testHasWithContraintsAndHavingInSubquery()
+    {
+        $model = new EloquentBuilderTestModelParentStub;
+
+        $builder = $model->where('bar', 'baz');
+        $builder->whereHas('foo', function ($q) {
+            $q->having('bam', '>', 'qux');
+        })->where('quux', 'quuux');
+
+        $this->assertEquals('select * from "eloquent_builder_test_model_parent_stubs" where "bar" = ? and (select count(*) from "eloquent_builder_test_model_close_related_stubs" where "eloquent_builder_test_model_parent_stubs"."foo_id" = "eloquent_builder_test_model_close_related_stubs"."id" having "bam" > ?) >= 1 and "quux" = ?', $builder->toSql());
+        $this->assertEquals(['baz', 'qux', 'quuux'], $builder->getBindings());
+    }
+
+    public function testHasWithContraintsAndJoinAndHavingInSubquery()
+    {
+        $model = new EloquentBuilderTestModelParentStub;
+        $builder = $model->where('bar', 'baz');
+        $builder->whereHas('foo', function ($q) {
+            $q->join('quuuux', function ($j) {
+               $j->on('quuuuux', '=', 'quuuuuux', 'and', true);
+            });
+            $q->having('bam', '>', 'qux');
+        })->where('quux', 'quuux');
+
+        $this->assertEquals('select * from "eloquent_builder_test_model_parent_stubs" where "bar" = ? and (select count(*) from "eloquent_builder_test_model_close_related_stubs" inner join "quuuux" on "quuuuux" = ? where "eloquent_builder_test_model_parent_stubs"."foo_id" = "eloquent_builder_test_model_close_related_stubs"."id" having "bam" > ?) >= 1 and "quux" = ?', $builder->toSql());
+        $this->assertEquals(['baz', 'quuuuuux', 'qux', 'quuux'], $builder->getBindings());
+    }
+
     public function testHasNestedWithConstraints()
     {
         $model = new EloquentBuilderTestModelParentStub;
@@ -463,6 +491,40 @@ class DatabaseEloquentBuilderTest extends PHPUnit_Framework_TestCase
         $result = $model->has('foo.bar')->orHas('foo.baz')->toSql();
 
         $this->assertEquals($builder->toSql(), $result);
+    }
+
+    public function testSelfHasNested()
+    {
+        $model = new EloquentBuilderTestModelSelfRelatedStub();
+
+        $nestedSql = $model->whereHas('parentFoo', function ($q) {
+            $q->has('childFoo');
+        })->toSql();
+
+        $dotSql = $model->has('parentFoo.childFoo')->toSql();
+
+        // alias has a dynamic hash, so replace with a static string for comparison
+        $alias = 'self_alias_hash';
+        $aliasRegex = '/\b(self_[a-f0-9]{32})(\b|$)/i';
+
+        $nestedSql = preg_replace($aliasRegex, $alias, $nestedSql);
+        $dotSql = preg_replace($aliasRegex, $alias, $dotSql);
+
+        $this->assertEquals($nestedSql, $dotSql);
+    }
+
+    public function testSelfHasNestedUsesAlias()
+    {
+        $model = new EloquentBuilderTestModelSelfRelatedStub();
+
+        $sql = $model->has('parentFoo.childFoo')->toSql();
+
+        // alias has a dynamic hash, so replace with a static string for comparison
+        $alias = 'self_alias_hash';
+        $aliasRegex = '/\b(self_[a-f0-9]{32})(\b|$)/i';
+
+        $sql = preg_replace($aliasRegex, $alias, $sql);
+        $this->assertContains('"self_related_stubs"."parent_id" = "self_alias_hash"."id"', $sql);
     }
 
     protected function mockConnectionForModel($model, $database)
@@ -553,4 +615,39 @@ class EloquentBuilderTestModelCloseRelatedStub extends Illuminate\Database\Eloqu
 
 class EloquentBuilderTestModelFarRelatedStub extends Illuminate\Database\Eloquent\Model
 {
+}
+
+class EloquentBuilderTestModelSelfRelatedStub extends Illuminate\Database\Eloquent\Model
+{
+    protected $table = 'self_related_stubs';
+
+    public function parentFoo()
+    {
+        return $this->belongsTo('EloquentBuilderTestModelSelfRelatedStub', 'parent_id', 'id', 'parent');
+    }
+
+    public function childFoo()
+    {
+        return $this->hasOne('EloquentBuilderTestModelSelfRelatedStub', 'parent_id', 'id', 'child');
+    }
+
+    public function childFoos()
+    {
+        return $this->hasMany('EloquentBuilderTestModelSelfRelatedStub', 'parent_id', 'id', 'children');
+    }
+
+    public function parentBars()
+    {
+        return $this->belongsToMany('EloquentBuilderTestModelSelfRelatedStub', 'self_pivot', 'child_id', 'parent_id', 'parent_bars');
+    }
+
+    public function childBars()
+    {
+        return $this->belongsToMany('EloquentBuilderTestModelSelfRelatedStub', 'self_pivot', 'parent_id', 'child_id', 'child_bars');
+    }
+
+    public function bazes()
+    {
+        return $this->hasMany('EloquentBuilderTestModelFarRelatedStub', 'foreign_key', 'id', 'bar');
+    }
 }

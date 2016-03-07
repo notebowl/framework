@@ -93,6 +93,12 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(Str::is('/', '/a'));
         $this->assertTrue(Str::is('foo/*', 'foo/bar/baz'));
         $this->assertTrue(Str::is('*/foo', 'blah/baz/foo'));
+
+        $valueObject = new StringableObjectStub('foo/bar/baz');
+        $patternObject = new StringableObjectStub('foo/*');
+
+        $this->assertTrue(Str::is('foo/bar/baz', $valueObject));
+        $this->assertTrue(Str::is($patternObject, $valueObject));
     }
 
     public function testLower()
@@ -120,7 +126,7 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
 
     public function testQuickRandom()
     {
-        $randomInteger = mt_rand(1, 100);
+        $randomInteger = random_int(1, 100);
         $this->assertEquals($randomInteger, strlen(Str::quickRandom($randomInteger)));
         $this->assertInternalType('string', Str::quickRandom());
         $this->assertEquals(16, strlen(Str::quickRandom()));
@@ -129,7 +135,7 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
     public function testRandom()
     {
         $this->assertEquals(16, strlen(Str::random()));
-        $randomInteger = mt_rand(1, 100);
+        $randomInteger = random_int(1, 100);
         $this->assertEquals($randomInteger, strlen(Str::random($randomInteger)));
         $this->assertInternalType('string', Str::random());
     }
@@ -138,6 +144,7 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
     {
         $this->assertEquals('laravel_p_h_p_framework', Str::snake('LaravelPHPFramework'));
         $this->assertEquals('laravel_php_framework', Str::snake('LaravelPhpFramework'));
+        $this->assertEquals('laravel php framework', Str::snake('LaravelPhpFramework', ' '));
         $this->assertEquals('laravel_php_framework', Str::snake('Laravel Php Framework'));
         $this->assertEquals('laravel_php_framework', Str::snake('Laravel    Php      Framework   '));
     }
@@ -164,13 +171,13 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('ЛЁ', Str::substr('БГДЖИЛЁ', -2));
         $this->assertEquals('И', Str::substr('БГДЖИЛЁ', -3, 1));
         $this->assertEquals('ДЖИЛ', Str::substr('БГДЖИЛЁ', 2, -1));
-        $this->assertEquals(false, Str::substr('БГДЖИЛЁ', 4, -4));
+        $this->assertEmpty(Str::substr('БГДЖИЛЁ', 4, -4));
         $this->assertEquals('ИЛ', Str::substr('БГДЖИЛЁ', -3, -1));
         $this->assertEquals('ГДЖИЛЁ', Str::substr('БГДЖИЛЁ', 1));
         $this->assertEquals('ГДЖ', Str::substr('БГДЖИЛЁ', 1, 3));
         $this->assertEquals('БГДЖ', Str::substr('БГДЖИЛЁ', 0, 4));
         $this->assertEquals('Ё', Str::substr('БГДЖИЛЁ', -1, 1));
-        $this->assertEquals(false, Str::substr('Б', 2));
+        $this->assertEmpty(Str::substr('Б', 2));
     }
 
     public function testUcfirst()
@@ -179,5 +186,20 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Laravel framework', Str::ucfirst('laravel framework'));
         $this->assertEquals('Мама', Str::ucfirst('мама'));
         $this->assertEquals('Мама мыла раму', Str::ucfirst('мама мыла раму'));
+    }
+}
+
+class StringableObjectStub
+{
+    private $value;
+
+    public function __construct($value)
+    {
+        $this->value = $value;
+    }
+
+    public function __toString()
+    {
+        return $this->value;
     }
 }

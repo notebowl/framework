@@ -85,9 +85,9 @@ class CacheRepositoryTest extends PHPUnit_Framework_TestCase
         $repo = $this->getRepository();
         $repo->getStore()->shouldReceive('add', 'get', 'put')->never();
         $result = $repo->add('foo', 'bar', Carbon::now()->subMinutes(10));
-        $this->assertSame(false, $result);
+        $this->assertFalse($result);
         $result = $repo->add('foo', 'bar', Carbon::now()->addSeconds(5));
-        $this->assertSame(false, $result);
+        $this->assertFalse($result);
     }
 
     public function testRegisterMacroWithNonStaticCall()
@@ -99,7 +99,7 @@ class CacheRepositoryTest extends PHPUnit_Framework_TestCase
 
     protected function getRepository()
     {
-        $dispatcher = new \Illuminate\Events\Dispatcher(m::mock('Illuminate\Container\Container'));
+        $dispatcher = new Illuminate\Events\Dispatcher(m::mock('Illuminate\Container\Container'));
         $repository = new Illuminate\Cache\Repository(m::mock('Illuminate\Contracts\Cache\Store'));
 
         $repository->setEventDispatcher($dispatcher);

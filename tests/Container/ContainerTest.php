@@ -318,12 +318,14 @@ return $obj; });
         $this->assertEquals($parameters, $instance->receivedParameters);
     }
 
+    /**
+     * @expectedException Illuminate\Contracts\Container\BindingResolutionException
+     * @expectedExceptionMessage Unresolvable dependency resolving [Parameter #0 [ <required> $first ]] in class ContainerMixedPrimitiveStub
+     */
     public function testInternalClassWithDefaultParameters()
     {
-        $this->setExpectedException('Illuminate\Contracts\Container\BindingResolutionException', 'Unresolvable dependency resolving [Parameter #0 [ <required> $first ]] in class ContainerMixedPrimitiveStub');
         $container = new Container;
-        $parameters = [];
-        $container->make('ContainerMixedPrimitiveStub', $parameters);
+        $container->make('ContainerMixedPrimitiveStub', []);
     }
 
     public function testCallWithDependencies()
@@ -509,6 +511,21 @@ return $obj; });
         $this->assertFalse($container->isAlias('ContainerConcreteStub'));
         $this->assertEmpty($container->getBindings());
         $this->assertFalse($container->isShared('ConcreteStub'));
+    }
+
+    public function testResolvedResolvesAliasToBindingNameBeforeChecking()
+    {
+        $container = new Container;
+        $container->bind('ConcreteStub', function () { return new ContainerConcreteStub; }, true);
+        $container->alias('ConcreteStub', 'foo');
+
+        $this->assertFalse($container->resolved('ConcreteStub'));
+        $this->assertFalse($container->resolved('foo'));
+
+        $concreteStubInstance = $container->make('ConcreteStub');
+
+        $this->assertTrue($container->resolved('ConcreteStub'));
+        $this->assertTrue($container->resolved('foo'));
     }
 }
 

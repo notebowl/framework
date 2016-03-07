@@ -96,9 +96,9 @@ class BladeCompiler extends Compiler implements CompilerInterface
             $this->setPath($path);
         }
 
-        $contents = $this->compileString($this->files->get($this->getPath()));
-
         if (! is_null($this->cachePath)) {
+            $contents = $this->compileString($this->files->get($this->getPath()));
+
             $this->files->put($this->getCompiledPath($this->getPath()), $contents);
         }
     }
@@ -266,16 +266,18 @@ class BladeCompiler extends Compiler implements CompilerInterface
     protected function compileStatements($value)
     {
         $callback = function ($match) {
-            if (method_exists($this, $method = 'compile'.ucfirst($match[1]))) {
-                $match[0] = $this->$method(Arr::get($match, 3));
+            if (Str::contains($match[1], '@')) {
+                $match[0] = isset($match[3]) ? $match[1].$match[3] : $match[1];
             } elseif (isset($this->customDirectives[$match[1]])) {
                 $match[0] = call_user_func($this->customDirectives[$match[1]], Arr::get($match, 3));
+            } elseif (method_exists($this, $method = 'compile'.ucfirst($match[1]))) {
+                $match[0] = $this->$method(Arr::get($match, 3));
             }
 
             return isset($match[3]) ? $match[0] : $match[0].$match[2];
         };
 
-        return preg_replace_callback('/\B@(\w+)([ \t]*)(\( ( (?>[^()]+) | (?3) )* \))?/x', $callback, $value);
+        return preg_replace_callback('/\B@(@?\w+)([ \t]*)(\( ( (?>[^()]+) | (?3) )* \))?/x', $callback, $value);
     }
 
     /**
@@ -527,6 +529,28 @@ class BladeCompiler extends Compiler implements CompilerInterface
     }
 
     /**
+     * Compile the break statements into valid PHP.
+     *
+     * @param  string  $expression
+     * @return string
+     */
+    protected function compileBreak($expression)
+    {
+        return $expression ? "<?php if{$expression} break; ?>" : '<?php break; ?>';
+    }
+
+    /**
+     * Compile the continue statements into valid PHP.
+     *
+     * @param  string  $expression
+     * @return string
+     */
+    protected function compileContinue($expression)
+    {
+        return $expression ? "<?php if{$expression} continue; ?>" : '<?php continue; ?>';
+    }
+
+    /**
      * Compile the forelse statements into valid PHP.
      *
      * @param  string  $expression
@@ -682,6 +706,39 @@ class BladeCompiler extends Compiler implements CompilerInterface
     protected function compileEndforelse($expression)
     {
         return '<?php endif; ?>';
+    }
+
+    /**
+     * Compile the raw PHP statements into valid PHP.
+     *
+     * @param  string  $expression
+     * @return string
+     */
+    protected function compilePhp($expression)
+    {
+        return $expression ? "<?php {$expression}; ?>" : '<?php ';
+    }
+
+    /**
+     * Compile end-php statement into valid PHP.
+     *
+     * @param  string  $expression
+     * @return string
+     */
+    protected function compileEndphp($expression)
+    {
+        return ' ?>';
+    }
+
+    /**
+     * Compile the unset statements into valid PHP.
+     *
+     * @param  string  $expression
+     * @return string
+     */
+    protected function compileUnset($expression)
+    {
+        return "<?php unset{$expression}; ?>";
     }
 
     /**

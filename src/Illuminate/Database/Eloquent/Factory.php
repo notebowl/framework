@@ -237,4 +237,9 @@ class Factory implements ArrayAccess
     {
         return array_get($this->definitions, $class);
     }
+
+    public function getDefinitions()
+    {
+        return $this->definitions;
+    }
 }

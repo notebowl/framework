@@ -861,6 +861,7 @@ class Connection implements ConnectionInterface
     public function setPdo($pdo)
     {
         if ($this->transactions >= 1) {
+            return $this;
             throw new RuntimeException("Can't swap PDO instance while within transaction.");
         }
 

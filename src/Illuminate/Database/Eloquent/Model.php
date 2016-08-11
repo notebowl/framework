@@ -7,7 +7,7 @@ use Exception;
 use ArrayAccess;
 use Carbon\Carbon;
 use LogicException;
-use JsonSerializable;
+use JsonSerializable;getMorphs
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Support\Jsonable;
@@ -2027,7 +2027,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      * @param  string  $id
      * @return array
      */
-    protected function getMorphs($name, $type, $id)
+    public function getMorphs($name, $type, $id)
     {
         $type = $type ?: $name.'_type';
 

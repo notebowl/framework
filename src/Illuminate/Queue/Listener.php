@@ -73,7 +73,7 @@ class Listener
         $binary = ProcessUtils::escapeArgument((new PhpExecutableFinder)->find(false));
 
         if (defined('HHVM_VERSION')) {
-            $binary .= ' --php';
+            $binary .= ' -v Eval.Jit=false --php';
         }
 
         if (defined('ARTISAN_BINARY')) {

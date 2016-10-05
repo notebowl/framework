@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Database\Connection;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -91,6 +90,8 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
 
         $model = EloquentTestUser::where('email', 'taylorotwell@gmail.com')->first();
         $this->assertEquals('taylorotwell@gmail.com', $model->email);
+        $this->assertTrue(isset($model->email));
+        $this->assertTrue(isset($model->friends));
 
         $model = EloquentTestUser::find(1);
         $this->assertInstanceOf('EloquentTestUser', $model);
@@ -133,7 +134,9 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
         EloquentTestUser::create(['id' => 2, 'email' => 'abigailotwell@gmail.com']);
         EloquentTestUser::create(['id' => 3, 'email' => 'foo@gmail.com']);
 
-        Paginator::currentPageResolver(function () { return 1; });
+        Paginator::currentPageResolver(function () {
+            return 1;
+        });
         $models = EloquentTestUser::oldest('id')->paginate(2);
 
         $this->assertEquals(2, $models->count());
@@ -143,7 +146,9 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('taylorotwell@gmail.com', $models[0]->email);
         $this->assertEquals('abigailotwell@gmail.com', $models[1]->email);
 
-        Paginator::currentPageResolver(function () { return 2; });
+        Paginator::currentPageResolver(function () {
+            return 2;
+        });
         $models = EloquentTestUser::oldest('id')->paginate(2);
 
         $this->assertEquals(1, $models->count());
@@ -216,10 +221,19 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
         $post = $user->post;
         $user = $post->user;
 
+        $this->assertTrue(isset($user->post->name));
         $this->assertInstanceOf('EloquentTestUser', $user);
         $this->assertInstanceOf('EloquentTestPost', $post);
         $this->assertEquals('taylorotwell@gmail.com', $user->email);
         $this->assertEquals('First Post', $post->name);
+    }
+
+    public function testIssetLoadsInRelationshipIfItIsntLoadedAlready()
+    {
+        $user = EloquentTestUser::create(['email' => 'taylorotwell@gmail.com']);
+        $user->post()->create(['name' => 'First Post']);
+
+        $this->assertTrue(isset($user->post->name));
     }
 
     public function testOneToManyRelationship()
@@ -342,6 +356,15 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(1, count($results));
         $this->assertEquals('Child Post', $results->first()->name);
+    }
+
+    public function testAggregatedValuesOfDatetimeField()
+    {
+        EloquentTestUser::create(['id' => 1, 'email' => 'test1@test.test', 'created_at' => '2016-08-10 09:21:00', 'updated_at' => Carbon\Carbon::now()]);
+        EloquentTestUser::create(['id' => 2, 'email' => 'test2@test.test', 'created_at' => '2016-08-01 12:00:00', 'updated_at' => Carbon\Carbon::now()]);
+
+        $this->assertEquals('2016-08-10 09:21:00', EloquentTestUser::max('created_at'));
+        $this->assertEquals('2016-08-01 12:00:00', EloquentTestUser::min('created_at'));
     }
 
     public function testWhereHasOnSelfReferencingBelongsToRelationship()
@@ -734,7 +757,7 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
     /**
      * Get a database connection instance.
      *
-     * @return Connection
+     * @return \Illuminate\Database\Connection
      */
     protected function connection($connection = 'default')
     {
@@ -744,7 +767,7 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
     /**
      * Get a schema builder instance.
      *
-     * @return Schema\Builder
+     * @return \Illuminate\Database\Schema\Builder
      */
     protected function schema($connection = 'default')
     {

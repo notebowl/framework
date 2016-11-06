@@ -21,7 +21,9 @@ class Create{{tableClassName}}Table extends Migration
             $table->unsignedInteger('reserved_at')->nullable();
             $table->unsignedInteger('available_at');
             $table->unsignedInteger('created_at');
+            $table->string('reservation')->nullable();
             $table->index(['queue', 'reserved', 'reserved_at']);
+            $table->unique(['reservation']);
         });
     }
 

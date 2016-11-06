@@ -21,6 +21,7 @@ class QueueDatabaseQueueTest extends PHPUnit_Framework_TestCase
             $this->assertEquals(0, $array['reserved']);
             $this->assertNull($array['reserved_at']);
             $this->assertInternalType('int', $array['available_at']);
+            $this->assertNull($array['reservation']);
         });
 
         $queue->push('foo', ['data']);
@@ -42,6 +43,7 @@ class QueueDatabaseQueueTest extends PHPUnit_Framework_TestCase
             $this->assertEquals(0, $array['reserved']);
             $this->assertNull($array['reserved_at']);
             $this->assertInternalType('int', $array['available_at']);
+            $this->assertNull($array['reservation']);
         });
 
         $queue->later(10, 'foo', ['data']);
@@ -63,6 +65,7 @@ class QueueDatabaseQueueTest extends PHPUnit_Framework_TestCase
                 'reserved_at' => null,
                 'available_at' => 'available',
                 'created_at' => 'created',
+                'reservation' => null,
             ], [
                 'queue' => 'queue',
                 'payload' => json_encode(['job' => 'bar', 'data' => ['data']]),
@@ -71,6 +74,7 @@ class QueueDatabaseQueueTest extends PHPUnit_Framework_TestCase
                 'reserved_at' => null,
                 'available_at' => 'available',
                 'created_at' => 'created',
+                'reservation' => null,
             ]], $records);
         });
 

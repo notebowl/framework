@@ -91,6 +91,8 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
 
         $model = EloquentTestUser::where('email', 'taylorotwell@gmail.com')->first();
         $this->assertEquals('taylorotwell@gmail.com', $model->email);
+        $this->assertTrue(isset($model->email));
+        $this->assertTrue(isset($model->friends));
 
         $model = EloquentTestUser::find(1);
         $this->assertInstanceOf('EloquentTestUser', $model);
@@ -133,7 +135,9 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
         EloquentTestUser::create(['id' => 2, 'email' => 'abigailotwell@gmail.com']);
         EloquentTestUser::create(['id' => 3, 'email' => 'foo@gmail.com']);
 
-        Paginator::currentPageResolver(function () { return 1; });
+        Paginator::currentPageResolver(function () {
+            return 1;
+        });
         $models = EloquentTestUser::oldest('id')->paginate(2);
 
         $this->assertEquals(2, $models->count());
@@ -143,7 +147,9 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('taylorotwell@gmail.com', $models[0]->email);
         $this->assertEquals('abigailotwell@gmail.com', $models[1]->email);
 
-        Paginator::currentPageResolver(function () { return 2; });
+        Paginator::currentPageResolver(function () {
+            return 2;
+        });
         $models = EloquentTestUser::oldest('id')->paginate(2);
 
         $this->assertEquals(1, $models->count());
@@ -216,10 +222,19 @@ class DatabaseEloquentIntegrationTest extends PHPUnit_Framework_TestCase
         $post = $user->post;
         $user = $post->user;
 
+        $this->assertTrue(isset($user->post->name));
         $this->assertInstanceOf('EloquentTestUser', $user);
         $this->assertInstanceOf('EloquentTestPost', $post);
         $this->assertEquals('taylorotwell@gmail.com', $user->email);
         $this->assertEquals('First Post', $post->name);
+    }
+
+    public function testIssetLoadsInRelationshipIfItIsntLoadedAlready()
+    {
+        $user = EloquentTestUser::create(['email' => 'taylorotwell@gmail.com']);
+        $user->post()->create(['name' => 'First Post']);
+
+        $this->assertTrue(isset($user->post->name));
     }
 
     public function testOneToManyRelationship()

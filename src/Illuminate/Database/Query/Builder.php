@@ -2381,6 +2381,15 @@ class Builder
         return $this;
     }
 
+    public function resetQuery()
+    {
+        $this->wheres = [];
+
+        foreach ($this->bindings as &$subBinding) {
+            $subBinding = [];
+        }
+    }
+
     /**
      * Handle dynamic method calls into the method.
      *

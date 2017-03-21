@@ -262,13 +262,6 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      * @var string
      */
     const UPDATED_AT = 'updated_at';
-    
-    /**
-     * The name of the "deleted at" column.
-     *
-     * @var string
-     */
-    const DELETED_AT = 'deleted_at';
 
     /**
      * Create a new Eloquent model instance.
@@ -2863,7 +2856,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      */
     public function getDates()
     {
-        $defaults = [static::CREATED_AT, static::UPDATED_AT, static::DELETED_AT];
+        $defaults = [static::CREATED_AT, static::UPDATED_AT];
 
         return $this->timestamps ? array_merge($this->dates, $defaults) : $this->dates;
     }

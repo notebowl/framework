@@ -810,8 +810,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
         else {
             $class = $this->getActualClassNameForMorph($class);
 
-            $instance_name = "App\Models\\$class";
-            $instance = new $instance_name;
+            $instance = new $class;
 
             return new MorphTo(
                 $instance->newQuery(), $this, $id, $instance->getKeyName(), $type, $name
@@ -1869,8 +1868,6 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
     protected function newBaseQueryBuilder()
     {
         $conn = $this->getConnection();
-        
-        $conn->getPdo()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, true);
 
         $grammar = $conn->getQueryGrammar();
 

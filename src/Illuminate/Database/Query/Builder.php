@@ -318,19 +318,6 @@ class Builder
 
         return $this;
     }
-    
-    /**
-     * Reset query options
-     */
-
-    public function resetQuery()
-    {
-        $this->wheres = [];
-
-        foreach ($this->bindings as &$subBinding) {
-            $subBinding = [];
-        }
-    }
 
     /**
      * Add a join clause to the query.

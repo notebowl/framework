@@ -2027,7 +2027,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      * @param  string  $id
      * @return array
      */
-    public function getMorphs($name, $type, $id)
+    protected function getMorphs($name, $type, $id)
     {
         $type = $type ?: $name.'_type';
 

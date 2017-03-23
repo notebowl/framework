@@ -561,11 +561,16 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTimestamp(Fluent $column)
     {
+        $length = "";
+        if ($column->length) {
+            $length = "({$column->length})";
+        }
+
         if ($column->useCurrent) {
             return 'timestamp default CURRENT_TIMESTAMP';
         }
 
-        return 'timestamp';
+        return "timestamp{$length}";
     }
 
     /**

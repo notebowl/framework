@@ -164,11 +164,17 @@ class DatabaseQueue extends Queue implements QueueContract
             $this->releaseJobsThatHaveBeenReservedTooLong($queue);
         }
 
-        if ($job = $this->reserveNextAvailableJob($queue)) {
+        if ($job = $this->getNextAvailableJob($queue)) {
+            $this->markJobAsReserved($job->id);
+
+            $this->database->commit();
+
             return new DatabaseJob(
                 $this->container, $this, $job, $queue
             );
         }
+
+        $this->database->commit();
     }
 
     /**
@@ -186,44 +192,44 @@ class DatabaseQueue extends Queue implements QueueContract
                     ->where('reserved', 1)
                     ->where('reserved_at', '<=', $expired)
                     ->update([
-                        'attempts' => new Expression('attempts + 1'),
-                        'reservation' => null,
                         'reserved' => 0,
                         'reserved_at' => null,
+                        'attempts' => new Expression('attempts + 1'),
                     ]);
     }
 
     /**
-     * Reserve the next available job for the queue.
+     * Get the next available job for the queue.
      *
      * @param  string|null  $queue
      * @return \StdClass|null
      */
-    protected function reserveNextAvailableJob($queue)
+    protected function getNextAvailableJob($queue)
     {
-        $reservation = str_random(48);
-
-        $count = $this->database->table($this->table)
-                      ->where('queue', $this->getQueue($queue))
-                      ->where('reserved', 0)
-                      ->where('available_at', '<=', $this->getTime())
-                      ->orderBy('id', 'asc')
-                      ->limit(1)
-                      ->update([
-                          'reservation' => $reservation,
-                          'reserved'    => 1,
-                          'reserved_at' => $this->getTime(),
-                      ]);
-
-        if ($count == 0) {
-            return;
-        }
+        $this->database->beginTransaction();
 
         $job = $this->database->table($this->table)
-                    ->where('reservation', $reservation)
+                    ->lockForUpdate()
+                    ->where('queue', $this->getQueue($queue))
+                    ->where('reserved', 0)
+                    ->where('available_at', '<=', $this->getTime())
+                    ->orderBy('id', 'asc')
                     ->first();
 
-        return (object) $job;
+        return $job ? (object) $job : null;
+    }
+
+    /**
+     * Mark the given job ID as reserved.
+     *
+     * @param  string  $id
+     * @return void
+     */
+    protected function markJobAsReserved($id)
+    {
+        $this->database->table($this->table)->where('id', $id)->update([
+            'reserved' => 1, 'reserved_at' => $this->getTime(),
+        ]);
     }
 
     /**
@@ -270,7 +276,6 @@ class DatabaseQueue extends Queue implements QueueContract
             'reserved_at' => null,
             'available_at' => $availableAt,
             'created_at' => $this->getTime(),
-            'reservation' => null,
         ];
     }
 

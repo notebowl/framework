@@ -182,11 +182,7 @@ class MorphTo extends BelongsTo
 
         $key = $instance->getTable().'.'.$instance->getKeyName();
 
-        /*
-         * TODO: Figure out why this change breaks a lot of our shit.
-         * Reff: https://github.com/notebowl/laravel-framework/pull/20/files#diff-4c052acf0022213a4cc23f53ba42720eL185
-         */
-        $query = $instance->newQuery()/*->with($this->getQuery()->getEagerLoads())*/;
+        $query = $instance->newQuery()->with($this->getQuery()->getEagerLoads());
 
         $query = $this->useWithTrashed($query);
 

@@ -892,10 +892,7 @@ class Connection implements ConnectionInterface
      */
     public function getDoctrineSchemaManager()
     {
-        $schema = $this->getDoctrineDriver()->getSchemaManager($this->getDoctrineConnection());
-        $schema->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-
-        return $schema;
+        return $this->getDoctrineDriver()->getSchemaManager($this->getDoctrineConnection());
     }
 
     /**

@@ -756,9 +756,9 @@ class Blueprint
      * @param  string  $column
      * @return \Illuminate\Support\Fluent
      */
-    public function timestamp($column, $length = 6)
+    public function timestamp($column)
     {
-        return $this->addColumn('timestamp', $column, [$length]);
+        return $this->addColumn('timestamp', $column);
     }
 
     /**

@@ -274,13 +274,6 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
     const UPDATED_AT = 'updated_at';
 
     /**
-     * The name of the "deleted at" column.
-     *
-     * @var string
-     */
-    const DELETED_AT = 'deleted_at';
-
-    /**
      * Create a new Eloquent model instance.
      *
      * @param  array  $attributes
@@ -849,8 +842,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
         else {
             $class = $this->getActualClassNameForMorph($class);
 
-            $instance_name = "App\Models\\$class";
-            $instance = new $instance_name;
+            $instance = new $class;
 
             return new MorphTo(
                 $instance->newQuery(), $this, $id, $instance->getKeyName(), $type, $name
@@ -2035,7 +2027,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      * @param  string  $id
      * @return array
      */
-    public function getMorphs($name, $type, $id)
+    protected function getMorphs($name, $type, $id)
     {
         $type = $type ?: $name.'_type';
 
@@ -2934,7 +2926,7 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
      */
     public function getDates()
     {
-        $defaults = [static::CREATED_AT, static::UPDATED_AT, static::DELETED_AT];
+        $defaults = [static::CREATED_AT, static::UPDATED_AT];
 
         return $this->timestamps ? array_merge($this->dates, $defaults) : $this->dates;
     }

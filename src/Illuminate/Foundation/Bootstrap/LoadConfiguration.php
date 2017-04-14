@@ -39,7 +39,7 @@ class LoadConfiguration
         }
 
         $app->detectEnvironment(function () use ($config) {
-            return $config->get('app.env', 'development');
+            return $config->get('app.env', 'production');
         });
 
         date_default_timezone_set($config['app.timezone']);

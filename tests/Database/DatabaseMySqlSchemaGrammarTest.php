@@ -248,6 +248,16 @@ class DatabaseMySqlSchemaGrammarTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('alter table `users` add primary key `bar`(`foo`)', $statements[0]);
     }
 
+    public function testAddingPrimaryKeyWithAlgorithm()
+    {
+        $blueprint = new Blueprint('users');
+        $blueprint->primary('foo', 'bar', 'hash');
+        $statements = $blueprint->toSql($this->getConnection(), $this->getGrammar());
+
+        $this->assertEquals(1, count($statements));
+        $this->assertEquals('alter table `users` add primary key `bar` using hash(`foo`)', $statements[0]);
+    }
+
     public function testAddingUniqueKey()
     {
         $blueprint = new Blueprint('users');
@@ -266,6 +276,16 @@ class DatabaseMySqlSchemaGrammarTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(1, count($statements));
         $this->assertEquals('alter table `users` add index `baz`(`foo`, `bar`)', $statements[0]);
+    }
+
+    public function testAddingIndexWithAlgorithm()
+    {
+        $blueprint = new Blueprint('users');
+        $blueprint->index(['foo', 'bar'], 'baz', 'hash');
+        $statements = $blueprint->toSql($this->getConnection(), $this->getGrammar());
+
+        $this->assertEquals(1, count($statements));
+        $this->assertEquals('alter table `users` add index `baz` using hash(`foo`, `bar`)', $statements[0]);
     }
 
     public function testAddingForeignKey()
@@ -337,7 +357,7 @@ class DatabaseMySqlSchemaGrammarTest extends PHPUnit_Framework_TestCase
         $statements = $blueprint->toSql($this->getConnection(), $this->getGrammar());
 
         $this->assertEquals(1, count($statements));
-        $this->assertEquals('alter table `products` add `price` int not null, add `discounted_virtual` int as (price - 5) not null, add `discounted_stored` int as (price - 5) stored not null', $statements[0]);
+        $this->assertEquals('alter table `products` add `price` int not null, add `discounted_virtual` int as (price - 5), add `discounted_stored` int as (price - 5) stored', $statements[0]);
     }
 
     public function testAddingString()

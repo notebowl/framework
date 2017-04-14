@@ -36,6 +36,36 @@ class DatabaseEloquentHasManyThroughTest extends PHPUnit_Framework_TestCase
         $relation->addEagerConstraints([$model1, $model2]);
     }
 
+    public function testEagerConstraintsAreProperlyAddedWithCustomKey()
+    {
+        $builder = m::mock('Illuminate\Database\Eloquent\Builder');
+        $builder->shouldReceive('join')->once()->with('users', 'users.id', '=', 'posts.user_id');
+        $builder->shouldReceive('where')->with('users.country_id', '=', 1);
+
+        $country = m::mock('Illuminate\Database\Eloquent\Model');
+        $country->shouldReceive('getKeyName')->andReturn('id');
+        $country->shouldReceive('offsetGet')->andReturn(1);
+        $country->shouldReceive('getForeignKey')->andReturn('country_id');
+
+        $user = m::mock('Illuminate\Database\Eloquent\Model');
+        $user->shouldReceive('getTable')->andReturn('users');
+        $user->shouldReceive('getQualifiedKeyName')->andReturn('users.id');
+        $post = m::mock('Illuminate\Database\Eloquent\Model');
+        $post->shouldReceive('getTable')->andReturn('posts');
+
+        $builder->shouldReceive('getModel')->andReturn($post);
+
+        $relation = new HasManyThrough($builder, $country, $user, 'country_id', 'user_id', 'not_id');
+        $relation->getQuery()->shouldReceive('whereIn')->once()->with('users.country_id', [3, 4]);
+        $model1 = new EloquentHasManyThroughModelStub;
+        $model1->id = 1;
+        $model1->not_id = 3;
+        $model2 = new EloquentHasManyThroughModelStub;
+        $model2->id = 2;
+        $model2->not_id = 4;
+        $relation->addEagerConstraints([$model1, $model2]);
+    }
+
     public function testModelsAreProperlyMatchedToParents()
     {
         $relation = $this->getRelation();
@@ -144,12 +174,13 @@ class DatabaseEloquentHasManyThroughTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('first', $relation->first());
     }
 
+    /**
+     * @expectedException Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function testFindOrFailThrowsException()
     {
-        $relation = $this->getMock('Illuminate\Database\Eloquent\Relations\HasManyThrough', ['find'], $this->getRelationArguments());
+        $relation = $this->getMockBuilder('Illuminate\Database\Eloquent\Relations\HasManyThrough')->setMethods(['find'])->setConstructorArgs($this->getRelationArguments())->getMock();
         $relation->expects($this->once())->method('find')->with('foo')->will($this->returnValue(null));
-
-        $this->setExpectedException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
         try {
             $relation->findOrFail('foo');
@@ -160,12 +191,13 @@ class DatabaseEloquentHasManyThroughTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @expectedException Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function testFirstOrFailThrowsException()
     {
-        $relation = $this->getMock('Illuminate\Database\Eloquent\Relations\HasManyThrough', ['first'], $this->getRelationArguments());
+        $relation = $this->getMockBuilder('Illuminate\Database\Eloquent\Relations\HasManyThrough')->setMethods(['first'])->setConstructorArgs($this->getRelationArguments())->getMock();
         $relation->expects($this->once())->method('first')->with(['id' => 'foo'])->will($this->returnValue(null));
-
-        $this->setExpectedException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
         try {
             $relation->firstOrFail(['id' => 'foo']);

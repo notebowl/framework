@@ -44,6 +44,14 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(Str::startsWith('jason', 'day'));
         $this->assertFalse(Str::startsWith('jason', ['day']));
         $this->assertFalse(Str::startsWith('jason', ''));
+        $this->assertFalse(Str::startsWith('7', ' 7'));
+        $this->assertTrue(Str::startsWith('7a', '7'));
+        $this->assertTrue(Str::startsWith('7a', 7));
+        $this->assertTrue(Str::startsWith('7.12a', 7.12));
+        $this->assertFalse(Str::startsWith('7.12a', 7.13));
+        $this->assertTrue(Str::startsWith(7.123, '7'));
+        $this->assertTrue(Str::startsWith(7.123, '7.12'));
+        $this->assertFalse(Str::startsWith(7.123, '7.13'));
     }
 
     public function testEndsWith()
@@ -56,6 +64,13 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(Str::endsWith('jason', ['no']));
         $this->assertFalse(Str::endsWith('jason', ''));
         $this->assertFalse(Str::endsWith('7', ' 7'));
+        $this->assertTrue(Str::endsWith('a7', '7'));
+        $this->assertTrue(Str::endsWith('a7', 7));
+        $this->assertTrue(Str::endsWith('a7.12', 7.12));
+        $this->assertFalse(Str::endsWith('a7.12', 7.13));
+        $this->assertTrue(Str::endsWith(0.27, '7'));
+        $this->assertTrue(Str::endsWith(0.27, '0.27'));
+        $this->assertFalse(Str::endsWith(0.27, '8'));
     }
 
     public function testStrContains()
@@ -142,6 +157,14 @@ class SupportStrTest extends PHPUnit_Framework_TestCase
         $randomInteger = random_int(1, 100);
         $this->assertEquals($randomInteger, strlen(Str::random($randomInteger)));
         $this->assertInternalType('string', Str::random());
+    }
+
+    public function testReplaceArray()
+    {
+        $this->assertEquals('foo/bar/baz', Str::replaceArray('?', ['foo', 'bar', 'baz'], '?/?/?'));
+        $this->assertEquals('foo/bar/baz/?', Str::replaceArray('?', ['foo', 'bar', 'baz'], '?/?/?/?'));
+        $this->assertEquals('foo/bar', Str::replaceArray('?', ['foo', 'bar', 'baz'], '?/?'));
+        $this->assertEquals('?/?/?', Str::replaceArray('x', ['foo', 'bar', 'baz'], '?/?/?'));
     }
 
     public function testReplaceFirst()

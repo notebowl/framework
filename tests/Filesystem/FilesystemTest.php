@@ -32,6 +32,24 @@ class FilesystemTest extends PHPUnit_Framework_TestCase
         $this->assertStringEqualsFile($this->tempDir.'/file.txt', 'Hello World');
     }
 
+    public function testSetChmod()
+    {
+        file_put_contents($this->tempDir.'/file.txt', 'Hello World');
+        $files = new Filesystem();
+        $files->chmod($this->tempDir.'/file.txt', 0755);
+        $filePermisson = substr(sprintf('%o', fileperms($this->tempDir.'/file.txt')), -4);
+        $this->assertEquals('0755', $filePermisson);
+    }
+
+    public function testGetChmod()
+    {
+        file_put_contents($this->tempDir.'/file.txt', 'Hello World');
+        chmod($this->tempDir.'/file.txt', 0755);
+        $files = new Filesystem();
+        $filePermisson = $files->chmod($this->tempDir.'/file.txt');
+        $this->assertEquals('0755', $filePermisson);
+    }
+
     public function testDeleteRemovesFiles()
     {
         file_put_contents($this->tempDir.'/file.txt', 'Hello World');
@@ -267,6 +285,22 @@ class FilesystemTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($files->isWritable($this->tempDir.'/foo.txt'));
     }
 
+    public function testIsReadable()
+    {
+        file_put_contents($this->tempDir.'/foo.txt', 'foo');
+        $files = new Filesystem();
+        // chmod is noneffective on Windows
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $this->assertTrue($files->isReadable($this->tempDir.'/foo.txt'));
+        } else {
+            @chmod($this->tempDir.'/foo.txt', 0000);
+            $this->assertFalse($files->isReadable($this->tempDir.'/foo.txt'));
+            @chmod($this->tempDir.'/foo.txt', 0777);
+            $this->assertTrue($files->isReadable($this->tempDir.'/foo.txt'));
+        }
+        $this->assertFalse($files->isReadable($this->tempDir.'/doesnotexist.txt'));
+    }
+
     public function testGlobFindsFiles()
     {
         file_put_contents($this->tempDir.'/foo.txt', 'foo');
@@ -312,18 +346,11 @@ class FilesystemTest extends PHPUnit_Framework_TestCase
      */
     public function testSharedGet()
     {
-        if (defined('HHVM_VERSION')) {
-            $this->markTestSkipped('Skip HHVM test due to bug: https://github.com/facebook/hhvm/issues/5657');
-        }
-
         if (! function_exists('pcntl_fork')) {
             $this->markTestSkipped('Skipping since the pcntl extension is not available');
         }
 
-        $content = '';
-        for ($i = 0; $i < 1000000; ++$i) {
-            $content .= $i;
-        }
+        $content = str_repeat('123456', 1000000);
         $result = 1;
 
         for ($i = 1; $i <= 20; ++$i) {

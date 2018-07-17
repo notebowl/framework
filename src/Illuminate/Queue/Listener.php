@@ -82,9 +82,15 @@ class Listener
      */
     protected function phpBinary()
     {
-        return ProcessUtils::escapeArgument(
+        $binary = ProcessUtils::escapeArgument(
             (new PhpExecutableFinder)->find(false)
         );
+
+        if (defined('HHVM_VERSION')) {
+            $binary .= ' -v Eval.Jit=false --php';
+        }
+
+        return $binary;
     }
 
     /**

@@ -688,7 +688,7 @@ class Validator implements ValidatorContract
      * @param  string|array  $rules
      * @return array|null
      */
-    protected function getRule($attribute, $rules)
+    public function getRule($attribute, $rules)
     {
         if (! array_key_exists($attribute, $this->rules)) {
             return;
